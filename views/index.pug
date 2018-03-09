@@ -17,10 +17,14 @@ html(lang="en")
     script.
         document.getElementById('scrape').addEventListener('click', function(event) {
             document.getElementById('response').textContent = '';
+            var data = {
+                url: document.getElementById('url').value
+            };
+            console.log(data);
             $.ajax({
-                type: 'GET',
+                type: 'POST',
                 url: '/scrape',
-                data: {url: document.getElementById('url').value}
+                data: data
             }).done(function(response) {
                 document.getElementById('response').textContent = response;
             });
