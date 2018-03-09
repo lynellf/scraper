@@ -14,29 +14,38 @@ router.get('/', function(req, res, next) {
 // Execute scraper
 
 router.post('/scrape', function(req, res, next) {
-    var url = req.body.url;
-    var json = {items: []};
-    
-  request(url, function(error, response, html) {
-    if(!error) {
-      var $ = cheerio.load(html);
-      var li;
+  var url = req.body.url;
+  var json = { items: '' };
 
-      $('li').filter(function(i, el) {
-        var data = $(this);
-        var itmes = data.text();
-        json.items = items;
-      })
+  function runScraper(html) {
+    var $ = cheerio.load(html);
+    var li = [];
+    $('li').filter(function() {
+      var data = $(this);
+      li.push(data.text());
+    });
+    return li;
+  }
 
-      fs.writeFile('output.json', JSON.stringify(json, null, 4), function(err) {
-    console.log('Check project directory for output');
-  })
-    } else {
-      console.log(error);
-    }
-  })
-  
-  res.send('Scraper is working. The url is ' + url);
+  function scrape(url) {
+    return new Promise(function(resolve, reject) {
+      request(url, function(error, response, html) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(runScraper(html));
+        }
+      });
+    });
+  }
+
+  scrape(url).then(function(result) {
+    json.items = result;
+    fs.writeFile('output.json', JSON.stringify(json, null, 4), function(err) {
+      console.log('Check project directory for output');
+    });
+    res.send('Scraper is working. The url is ' + url);
+  });
 });
 
 module.exports = router;
